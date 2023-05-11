@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import Web3 from "web3";
 import "./App.css";
 
-const accounts = window.ethereum.enable();
 const web3 = new Web3(Web3.givenProvider);
-const userAddress = "0xc308c045C036cA78Dc11C31bF36889EBdAE8cCD5";
+const userAddress = "0xA341B44E6386a6506C5073A7898B6e35c5DED0f7";
+const contractAddress = "0xe6058CA721C71DF17924FF129C50841cEDFd71b7";
 const contractABI = [
   {
     inputs: [
@@ -79,21 +79,29 @@ function App() {
   const [users, setUsers] = useState([]);
   const [contract, setContract] = useState();
 
-  React.useEffect(() => {
-    const contractInstance = new web3.eth.Contract(
-      contractABI,
-      contractAddress
-    );
-    setContract(contractInstance);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [age, setAge] = useState("");
+  const [nationality, setNationality] = useState("");
+  const [gender, setGender] = useState("");
 
-    const fetchUsers = async () => {
-      const users = await contract.methods.getUsers().call();
+  React.useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const contractInstance = new web3.eth.Contract(
+        contractABI,
+        contractAddress
+      );
+      setContract(contractInstance);
+      const users = await contractInstance.methods.getUsers().call();
       setUsers(users);
-    };
-    if (contract) {
-      fetchUsers();
+    } catch (e) {
+      console.log(e);
     }
-  }, [contract]);
+  };
 
   const addUser = async (event) => {
     event.preventDefault();
@@ -106,6 +114,7 @@ function App() {
     await contract.methods
       .addUser(firstName, lastName, age, nationality, gender)
       .send({ from: userAddress });
+    fetchUsers();
   };
 
   const editUser = async (
@@ -119,50 +128,97 @@ function App() {
     await contract.methods
       .editUser(index, firstName, lastName, age, nationality, gender)
       .send({ from: userAddress });
+    fetchUsers();
   };
 
   const deleteUser = async (index) => {
-    await contract.methods
-      .deleteUser(index)
-      .send({ from: userAddress });
+    await contract.methods.deleteUser(index).send({ from: userAddress });
+    fetchUsers();
   };
 
   return (
-    <div className="App">
-      <form onSubmit={addUser}>
-        <input type="text" name="firstName" placeholder="First Name" />
-        <input type="text" name="lastName" placeholder="Last Name" />
-        <input type="number" name="age" placeholder="Age" />
-        <input type="text" name="nationality" placeholder="Nationality" />
-        <input type="text" name="gender" placeholder="Gender" />
-        <button type="submit">Submit</button>
-      </form>
-      <div className="cards">
+    <div class="App">
+      <h1>
+        Unlock limitless possibilities <br />
+        with Blockchain
+      </h1>
+      <div class="main">
+        <form onSubmit={addUser}>
+          <h2> Join Us! </h2>
+          <input
+            type="text"
+            name="firstName"
+            placeholder="First Name"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+          />
+          <input
+            type="text"
+            name="lastName"
+            placeholder="Last Name"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+          />
+          <input
+            type="number"
+            name="age"
+            placeholder="Age"
+            value={age}
+            onChange={(e) => setAge(e.target.value)}
+          />
+          <input
+            type="text"
+            name="nationality"
+            placeholder="Nationality"
+            value={nationality}
+            onChange={(e) => setNationality(e.target.value)}
+          />
+          <input
+            type="text"
+            name="gender"
+            placeholder="Gender"
+            value={gender}
+            onChange={(e) => setGender(e.target.value)}
+          />
+          <div class="btn-grp">
+            <button class="res" type="reset">
+              Clear
+            </button>
+            <button class="sub" type="submit">
+              Submit
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="cards">
         {users.map((user, index) => (
-          <div className="card">
-            <h2>
+          <div class="card">
+            <h3>
               {user.firstName} {user.lastName}
-            </h2>
+            </h3>
             <p>Age: {user.age}</p>
             <p>Nationality: {user.nationality}</p>
             <p>Gender: {user.gender}</p>
-            <button
-              onClick={() =>
-                editUser(
-                  index,
-                  "NewFirstName",
-                  "NewLastName",
-                  30,
-                  "NewNationality",
-                  "NewGender"
-                )
-              }
-            >
-              Edit
-            </button>
-            <button onClick={() => deleteUser(index)}>Delete</button>
+
+            <div class="btn-grp">
+              <button
+                class="edit"
+                onClick={() =>
+                  editUser(index, firstName, lastName, age, nationality, gender)
+                }
+              >
+                Edit
+              </button>
+              <button class="delete" onClick={() => deleteUser(index)}>
+                Delete
+              </button>
+            </div>
           </div>
         ))}
+      </div>
+      <div class="footer">
+        <p> Copyright 2023 | Lopez, John Jemuel | Requez, Kyle</p>
       </div>
     </div>
   );
